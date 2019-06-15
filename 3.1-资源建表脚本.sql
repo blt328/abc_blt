@@ -9,6 +9,7 @@ create table ABC_FCT_RESO_LIST
   car_no     VARCHAR2(10),
   reso_code  VARCHAR2(10),
   reso_name  VARCHAR2(100),
+  amt        NUMBER,
   load_tm    DATE
 )
 tablespace USERS
@@ -35,8 +36,11 @@ comment on column ABC_FCT_RESO_LIST.reso_code
   is '资源代码';
 comment on column ABC_FCT_RESO_LIST.reso_name
   is '资源名称';
+comment on column ABC_FCT_RESO_LIST.amt
+  is '金额';
 comment on column ABC_FCT_RESO_LIST.load_tm
   is '加载时间';
+
 
 
 
@@ -97,6 +101,7 @@ create table ODS_SUBJ_ACCO
   subj_name  VARCHAR2(100),
   post_name  VARCHAR2(100),
   car_no     VARCHAR2(10),
+  amt        NUMBER,
   load_tm    DATE
 )
 tablespace USERS
@@ -119,9 +124,10 @@ comment on column ODS_SUBJ_ACCO.post_name
   is '岗位名';
 comment on column ODS_SUBJ_ACCO.car_no
   is '车牌号';
+comment on column ODS_SUBJ_ACCO.amt
+  is '金额';
 comment on column ODS_SUBJ_ACCO.load_tm
   is '加载时间';
-
 
 
 
