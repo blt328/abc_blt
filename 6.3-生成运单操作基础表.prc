@@ -6,26 +6,26 @@ create or replace procedure p_abc_bsl_op_waybill(p_fm_dt date default sysdate,
    purpose :
    version  modify  time        desc
    -------  -----   ----------  -------------------------------
-   v1.0     blt     2019-06-15  Éú³ÉÔËµ¥²Ù×÷»ù´¡±í
+   v1.0     blt     2019-06-15  生成运单操作基础表
   **************************************************************/
 
   v_sqlstate  varchar2(1000);
   v_proc_name varchar2(300);
   v_rowcount  number(12);
-  --×Ô¶¨Òå±äÁ¿
+  --自定义变量
   v_fm_date date;
   v_to_date date;
   v_month   varchar2(10);
   v_pkg     int;
 begin
-  v_sqlstate  := '±äÁ¿¸³Öµ';
+  v_sqlstate  := '变量赋值';
   v_proc_name := 'p_abc_bsl_op_waybill';
   v_fm_date   := trunc(p_fm_dt, 'MM');
   v_to_date   := trunc(p_to_dt, 'MM');
   v_month     := to_char(v_fm_date, 'YYYYMM');
   v_pkg       := 0;
 
-  v_sqlstate := 'É¾³ýÊý¾Ý';
+  v_sqlstate := '删除数据';
   delete abc_bsl_op_waybill a
    where a.op_dt >= v_fm_date
      and a.op_dt <= v_to_date;
@@ -33,7 +33,7 @@ begin
   delete abc_dim_line a where a.month_code = v_month;
 
   while v_fm_date <= v_to_date loop
-    --ÔËµ¥ÐÅÏ¢
+    --运单信息
     for v_waybill in (select *
                         from abc_bsl_waybill a
                        where a.rec_dt = v_fm_date) loop
@@ -41,7 +41,7 @@ begin
         into v_pkg
         from dual;
       if v_waybill.rec_city <> v_waybill.send_city then
-        --ÊÕ¶Ë³µÅÆÐÅÏ¢
+        --收端车牌信息
         for v_car in (select *
                         from (select b.*,
                                      row_number() over(order by dbms_random.value(0, 10)) rn
@@ -56,7 +56,7 @@ begin
             (v_fm_date,
              v_waybill.rec_dept,
              '30',
-             '×°³µ',
+             '装车',
              v_waybill.waybill_no,
              v_car.car_no,
              v_waybill.rec_dept || v_waybill.rec_city || 'W',
@@ -65,7 +65,7 @@ begin
              sysdate);
         end loop;
         commit;
-        --ÅÉ¶Ë³µÅÆÐÅÏ¢
+        --派端车牌信息
         for v_car in (select *
                         from (select b.*,
                                      row_number() over(order by dbms_random.value(0, 10)) rn
@@ -80,7 +80,7 @@ begin
             (v_fm_date,
              v_waybill.send_dept,
              '31',
-             'Ð¶³µ',
+             '卸车',
              v_waybill.waybill_no,
              v_car.car_no,
              v_waybill.send_city || 'W' || v_waybill.send_dept,
@@ -90,7 +90,7 @@ begin
         end loop;
         commit;
       end if;
-      --ÖÐ×ª³µÅÆÐÅÏ¢
+      --中转车牌信息
       for v_car in (select *
                       from (select b.*,
                                    row_number() over(order by dbms_random.value(0, 10)) rn
@@ -107,7 +107,7 @@ begin
           (v_fm_date,
            v_car.dept_code,
            '30',
-           '×°³µ',
+           '装车',
            v_waybill.waybill_no,
            v_car.car_no,
            v_waybill.rec_city || 'W' || v_waybill.send_city || 'W',
@@ -120,7 +120,7 @@ begin
     v_fm_date := v_fm_date + 1;
   end loop;
 
-  v_sqlstate := 'Éú³ÉÏßÂ·Ö÷Êý¾Ý';
+  v_sqlstate := '生成线路主数据';
   insert into abc_dim_line
     select t.month_code,
            t.line_code,
@@ -145,7 +145,7 @@ begin
              where to_char(a.op_dt, 'YYYYMM') = v_month
              group by to_char(a.op_dt, 'YYYYMM'), a.line_code) t;
   commit;
-  v_sqlstate := '½áÊø';
+  v_sqlstate := '结束';
 
 exception
   when others then
@@ -153,4 +153,3 @@ exception
     commit;
   
 end p_abc_bsl_op_waybill;
-/
